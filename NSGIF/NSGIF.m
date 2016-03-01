@@ -155,28 +155,25 @@ typedef NS_ENUM(NSInteger, GIFSize) {
     generator.requestedTimeToleranceAfter = tol;
     
     NSError *error = nil;
-   CGImageRef previousImageRefCopy = nil;
+    NSMutableDictionary* timePointImage = [NSMutableDictionary dictionary];
     for (NSValue *time in timePoints) {
-        CGImageRef imageRef;
-        
-        imageRef = ResizedImage([generator copyCGImageAtTime:[time CMTimeValue] actualTime:nil error:&error], gifSize, contentMode);
-        
+        CMTime t = [time CMTimeValue];
+        CGImageRef imageRef = (__bridge CGImageRef)([timePointImage objectForKey:@(t.value)]);
+        if(!imageRef){
+            imageRef = ResizedImage([generator copyCGImageAtTime:t actualTime:nil error:&error], gifSize, contentMode);
+            [timePointImage setObject:(__bridge id _Nonnull)(imageRef) forKey:@(t.value)];
+        }
         if (error) {
             NSLog(@"Error copying image: %@", error);
         }
-        if (imageRef) {
-            CGImageRelease(previousImageRefCopy);
-            previousImageRefCopy = CGImageCreateCopy(imageRef);
-        } else if (previousImageRefCopy) {
-            imageRef = CGImageCreateCopy(previousImageRefCopy);
-        } else {
-            NSLog(@"Error copying image and no previous frames to duplicate");
-            return nil;
-        }
+        
         CGImageDestinationAddImage(destination, imageRef, (CFDictionaryRef)frameProperties);
+    }
+    for (id key in [timePointImage allKeys]) {
+        CGImageRef imageRef = (__bridge CGImageRef)([timePointImage objectForKey:key]);
         CGImageRelease(imageRef);
     }
-    CGImageRelease(previousImageRefCopy);
+    [timePointImage removeAllObjects];
     
     CGImageDestinationSetProperties(destination, (CFDictionaryRef)fileProperties);
     // Finalize the GIF
@@ -219,7 +216,7 @@ CGImageRef ResizedImage(CGImageRef imageRef, CGSize sizeLimit, UIViewContentMode
         // stretch
         newSize = sizeLimit;
     }
-    UIGraphicsBeginImageContextWithOptions(newSize, NO, 0);
+    UIGraphicsBeginImageContextWithOptions(newSize, NO, 1);
     CGContextRef context = UIGraphicsGetCurrentContext();
     if (!context) {
         return nil;
