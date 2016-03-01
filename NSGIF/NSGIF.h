@@ -19,8 +19,8 @@
 
 @interface NSGIF : NSObject
 
-+ (void)optimalGIFfromURL:(NSURL*)videoURL loopCount:(int)loopCount completion:(void(^)(NSURL *GifURL))completionBlock;
++ (void)optimalGIFfromURL:(NSURL*)videoURL loopCount:(int)loopCount size:(CGSize)size completion:(void(^)(NSURL *GifURL))completionBlock;
 
-+ (void)createGIFfromURL:(NSURL*)videoURL withFrameCount:(int)frameCount maxDuration:(NSTimeInterval)maxDuration delayTime:(int)delayTime loopCount:(int)loopCount completion:(void(^)(NSURL *GifURL))completionBlock;
++ (void)createGIFfromURL:(NSURL*)videoURL withFrameCount:(int)frameCount maxDuration:(NSTimeInterval)maxDuration delayTime:(int)delayTime rotate:(BOOL)rotate loopCount:(int)loopCount size:(CGSize)size contentMode:(UIViewContentMode)contentMode completion:(void(^)(NSURL *GifURL))completionBlock;
 
 @end
