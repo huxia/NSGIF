@@ -81,7 +81,7 @@ typedef NS_ENUM(NSInteger, GIFSize) {
 
 }
 
-+ (void)createGIFfromURL:(NSURL*)videoURL withFrameCount:(int)frameCount delayTime:(int)delayTime loopCount:(int)loopCount completion:(void(^)(NSURL *GifURL))completionBlock {
++ (void)createGIFfromURL:(NSURL*)videoURL withFrameCount:(int)frameCount maxDuration:(NSTimeInterval)maxDuration delayTime:(int)delayTime loopCount:(int)loopCount completion:(void(^)(NSURL *GifURL))completionBlock {
     
     // Convert the video at the given URL to a GIF, and return the GIF's URL if it was created.
     // The frames are spaced evenly over the video, and each has the same duration.
@@ -98,7 +98,7 @@ typedef NS_ENUM(NSInteger, GIFSize) {
     float videoLength = (float)asset.duration.value/asset.duration.timescale;
     
     // How far along the video track we want to move, in seconds.
-    float increment = (float)videoLength/frameCount;
+    float increment = (float)MIN(maxDuration, videoLength)/frameCount;
     
     // Add frames to the buffer
     NSMutableArray *timePoints = [NSMutableArray array];
@@ -207,8 +207,6 @@ CGImageRef ImageWithScale(CGImageRef imageRef, float scale) {
     // Draw into the context; this scales the image
     CGContextDrawImage(context, newRect, imageRef);
     
-    //Release old image
-    CFRelease(imageRef);
     // Get the resized image from the context and a UIImage
     imageRef = CGBitmapContextCreateImage(context);
     
