@@ -161,6 +161,10 @@ typedef NS_ENUM(NSInteger, GIFSize) {
         CGImageRef imageRef = (__bridge CGImageRef)([timePointImage objectForKey:@(t.value)]);
         if(!imageRef){
             imageRef = ResizedImage([generator copyCGImageAtTime:t actualTime:nil error:&error], gifSize, contentMode);
+            if(!imageRef){
+                NSLog(@"Error generating frame: %f %@", t, error);
+                return nil;
+            }
             [timePointImage setObject:(__bridge id _Nonnull)(imageRef) forKey:@(t.value)];
         }
         if (error) {
