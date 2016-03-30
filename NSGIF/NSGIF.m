@@ -96,14 +96,15 @@ typedef NS_ENUM(NSInteger, GIFSize) {
 
     // Get the length of the video in seconds
     float videoLength = (float)asset.duration.value/asset.duration.timescale;
+    float startTime = MIN(0.1f, videoLength/10);
     
     // How far along the video track we want to move, in seconds.
-    float increment = (float)MIN(maxDuration, videoLength)/frameCount;
+    float increment = (float)(MIN(maxDuration, videoLength)-startTime)/frameCount;
     
     // Add frames to the buffer
     NSMutableArray *timePoints = [NSMutableArray array];
     for (int currentFrame = 0; currentFrame<frameCount; ++currentFrame) {
-        float seconds = (float)increment * currentFrame;
+        float seconds = startTime + (float)increment * currentFrame;
         CMTime time = CMTimeMakeWithSeconds(seconds, [timeInterval intValue]);
         [timePoints addObject:[NSValue valueWithCMTime:time]];
     }
