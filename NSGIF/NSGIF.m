@@ -155,7 +155,9 @@ typedef NS_ENUM(NSInteger, GIFSize) {
     generator.requestedTimeToleranceAfter = tol;
     
     NSError *error = nil;
+    int missingImage = 0;
     NSMutableDictionary* timePointImage = [NSMutableDictionary dictionary];
+    CGImageRef lastImageRef = NULL;
     for (NSValue *time in timePoints) {
         CMTime t = [time CMTimeValue];
         CGImageRef imageRef = (__bridge CGImageRef)([timePointImage objectForKey:@(t.value)]);
@@ -163,16 +165,24 @@ typedef NS_ENUM(NSInteger, GIFSize) {
             imageRef = ResizedImage([generator copyCGImageAtTime:t actualTime:nil error:&error], gifSize, contentMode);
             if(!imageRef){
                 NSLog(@"Error generating frame: %f %@", t, error);
-                return nil;
+                missingImage ++;
+                continue;
             }
             [timePointImage setObject:(__bridge id _Nonnull)(imageRef) forKey:@(t.value)];
         }
         if (error) {
             NSLog(@"Error copying image: %@", error);
         }
-        
+        lastImageRef = imageRef;
         CGImageDestinationAddImage(destination, imageRef, (CFDictionaryRef)frameProperties);
     }
+    
+    for(int i=0;i<missingImage;i++){
+        if(!lastImageRef) return nil;
+        
+        CGImageDestinationAddImage(destination, lastImageRef, (CFDictionaryRef)frameProperties);
+    }
+    
     for (id key in [timePointImage allKeys]) {
         CGImageRef imageRef = (__bridge CGImageRef)([timePointImage objectForKey:key]);
         CGImageRelease(imageRef);
